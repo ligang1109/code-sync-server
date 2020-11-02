@@ -1,0 +1,17 @@
+{
+    "prj_name": "code-sync-server",
+    "is_dev": false,
+
+    "log": {
+        "level": 5,
+        "async_queue_size": 1000000,
+        "bufsize": 4096
+    },
+
+    "api_http": {
+        "gohttp_host": "127.0.0.1",
+        "gohttp_port": "9090"
+    },
+
+    "upload_routine_cnt": 4
+}

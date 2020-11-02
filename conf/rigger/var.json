@@ -1,0 +1,12 @@
+{
+    "PRJ_NAME": "code-sync-server",
+    "PRJ_HOME": "__ARG__(prjHome)",
+    "RIGGER_TPL_ROOT": "${PRJ_HOME}/conf/rigger/tpl",
+
+    "SERVER_CONF_TPL": "${RIGGER_TPL_ROOT}/tpl_server_conf_rewrite.json",
+    "SERVER_CONF_DST": "${PRJ_HOME}/conf/server/${USER}_server_conf_rewrite.json",
+    "SERVER_CONF_LN": "${PRJ_HOME}/conf/server_conf_rewrite.json",
+
+    "API_GOHTTP_PORT": "__MATH__(6001+${UID})"
+
+}

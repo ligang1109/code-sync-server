@@ -1,0 +1,18 @@
+{
+    "is_dev": true,
+
+    "log": {
+        "level": 7
+    },
+
+    "api_http": {
+        "gohttp_port": "${API_GOHTTP_PORT}"
+    },
+
+    "code_prj_map": {
+        "demo": {
+            "prj_home": "/tmp/data/code-sync-server/demo_prj",
+            "token": "c73b0ccea19da4a2f2c0f00ef16c8c49"
+        }
+    }
+}
