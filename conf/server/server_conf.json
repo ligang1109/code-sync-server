@@ -13,5 +13,5 @@
         "gohttp_port": "9090"
     },
 
-    "upload_routine_cnt": 4
+    "sync_routine_cnt": 4
 }

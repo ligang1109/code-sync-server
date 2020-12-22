@@ -15,7 +15,7 @@ type serverConfJson struct {
 
 	CodePrjMap map[string]*codePrjConfJson `json:"code_prj_map"`
 
-	UploadRoutineCnt int `json:"upload_routine_cnt"`
+	SyncRoutineCnt int `json:"sync_routine_cnt"`
 }
 
 func initServerConfJson() error {

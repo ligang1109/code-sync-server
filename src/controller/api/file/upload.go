@@ -1,4 +1,4 @@
-package upload
+package file
 
 import (
 	"github.com/goinbox/goerror"
@@ -8,7 +8,7 @@ import (
 	"code-sync-server/misc"
 )
 
-type fileActionParams struct {
+type uploadActionParams struct {
 	prj  string
 	user string
 	host string
@@ -16,22 +16,22 @@ type fileActionParams struct {
 	misc.ApiSignParams
 }
 
-var fileSignQueryNames = append([]string{"prj", "user", "host", MultiPartFormNameFile, MultiPartFormNameMd5, MultiPartFormNamePerm, MultiPartFormNameVersion}, misc.ApiSignQueryNames...)
+var uploadSignQueryNames = append([]string{"prj", "user", "host", MultiPartFormNameFile, MultiPartFormNameMd5, MultiPartFormNamePerm}, misc.ApiSignQueryNames...)
 
-func (uc *UploadController) FileAction(context *UploadContext) {
-	ap, _, e := uc.parseFileActionParams(context)
+func (fc *FileController) UploadAction(context *FileContext) {
+	ap, _, e := fc.parseUploadActionParams(context)
 	if e != nil {
 		context.ApiData.Err = e
 		return
 	}
 
-	err := uc.parseMultipart(context)
+	err := fc.parseMultipart(context)
 	if err != nil {
 		context.ApiData.Err = goerror.New(errno.EParseMultipartError, err.Error())
 		return
 	}
 
-	uf, opd, err := uc.parseUploadFile(ap.prj, context)
+	uf, opd, err := fc.parseUploadFile(ap.prj, context)
 	if err != nil {
 		context.ApiData.Err = goerror.New(errno.EParseUploadFileError, err.Error())
 		return
@@ -40,18 +40,17 @@ func (uc *UploadController) FileAction(context *UploadContext) {
 	context.QueryValues.Set(MultiPartFormNameFile, uf.Rpath)
 	context.QueryValues.Set(MultiPartFormNameMd5, string(opd[MultiPartFormNameMd5]))
 	context.QueryValues.Set(MultiPartFormNamePerm, string(opd[MultiPartFormNamePerm]))
-	context.QueryValues.Set(MultiPartFormNameVersion, string(opd[MultiPartFormNameVersion]))
-	e = misc.VerifyApiSign(&ap.ApiSignParams, context.QueryValues, fileSignQueryNames, uf.Cpc.Token)
+	e = misc.VerifyApiSign(&ap.ApiSignParams, context.QueryValues, uploadSignQueryNames, uf.Cpc.Token)
 	if e != nil {
 		context.ApiData.Err = e
 		return
 	}
 
-	context.uploadSvc.UploadFile(uf)
+	context.syncSvc.SyncFile(uf)
 }
 
-func (uc *UploadController) parseFileActionParams(context *UploadContext) (*fileActionParams, map[string]bool, *goerror.Error) {
-	ap := new(fileActionParams)
+func (fc *FileController) parseUploadActionParams(context *FileContext) (*uploadActionParams, map[string]bool, *goerror.Error) {
+	ap := new(uploadActionParams)
 
 	qs := query.NewQuerySet()
 	qs.StringVar(&ap.prj, "prj", true, errno.ECommonInvalidArg, "invalid prj", query.CheckStringNotEmpty)

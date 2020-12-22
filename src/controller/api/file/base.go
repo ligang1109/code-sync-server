@@ -1,61 +1,62 @@
-package upload
+package file
 
 import (
-	"code-sync-server/conf"
-	"code-sync-server/controller/api"
-	uploadSvc "code-sync-server/svc/upload"
-	"github.com/goinbox/crypto"
-	gcontroller "github.com/goinbox/gohttp/controller"
-	"os"
-	"strconv"
-
 	"errors"
 	"io"
 	"mime/multipart"
 	"net/http"
+	"os"
+	"strconv"
+
+	"github.com/goinbox/crypto"
+	gcontroller "github.com/goinbox/gohttp/controller"
+
+	"code-sync-server/conf"
+	"code-sync-server/controller/api"
+	syncSvc "code-sync-server/svc/sync"
 )
 
 const (
 	MultiPartReadBufSize = 4096
 
-	MultiPartFormNameMd5     = "md5"
-	MultiPartFormNameFile    = "formfile"
-	MultiPartFormNamePerm    = "perm"
-	MultiPartFormNameVersion = "version"
+	MultiPartFormNameMd5  = "md5"
+	MultiPartFormNameFile = "formfile"
+	MultiPartFormNamePerm = "perm"
 )
 
 type multiPart struct {
+
 	fileName string
 	contents []byte
 }
 
-type UploadContext struct {
+type FileContext struct {
 	*api.ApiContext
 
-	uploadSvc *uploadSvc.UploadSvc
+	syncSvc *syncSvc.SyncSvc
 
 	multiForm map[string]*multiPart
 }
 
-func (uc *UploadContext) BeforeAction() {
-	uc.ApiContext.BeforeAction()
+func (fc *FileContext) BeforeAction() {
+	fc.ApiContext.BeforeAction()
 
-	uc.uploadSvc = uploadSvc.NewUploadSvc(uc.TraceId)
+	fc.syncSvc = syncSvc.NewSyncSvc(fc.TraceId)
 }
 
-type UploadController struct {
+type FileController struct {
 	api.BaseController
 }
 
-func (uc *UploadController) NewActionContext(req *http.Request, respWriter http.ResponseWriter) gcontroller.ActionContext {
-	context := new(UploadContext)
-	context.ApiContext = uc.BaseController.NewActionContext(req, respWriter).(*api.ApiContext)
+func (fc *FileController) NewActionContext(req *http.Request, respWriter http.ResponseWriter) gcontroller.ActionContext {
+	context := new(FileContext)
+	context.ApiContext = fc.BaseController.NewActionContext(req, respWriter).(*api.ApiContext)
 	context.multiForm = make(map[string]*multiPart)
 
 	return context
 }
 
-func (uc *UploadController) parseMultipart(context *UploadContext) error {
+func (fc *FileController) parseMultipart(context *FileContext) error {
 	reader, err := context.Request().MultipartReader()
 	if err != nil {
 		return err
@@ -71,14 +72,14 @@ func (uc *UploadController) parseMultipart(context *UploadContext) error {
 			}
 		}
 
-		err = uc.parsePart(context, part)
+		err = fc.parsePart(context, part)
 		if err != nil {
 			return err
 		}
 	}
 }
 
-func (uc *UploadController) parsePart(context *UploadContext, part *multipart.Part) error {
+func (fc *FileController) parsePart(context *FileContext, part *multipart.Part) error {
 	var contents []byte
 
 	for {
@@ -105,7 +106,7 @@ func (uc *UploadController) parsePart(context *UploadContext, part *multipart.Pa
 	return nil
 }
 
-func (uc *UploadController) parseUploadFile(prj string, context *UploadContext) (*uploadSvc.UploadFile, map[string][]byte, error) {
+func (fc *FileController) parseUploadFile(prj string, context *FileContext) (*syncSvc.SyncFile, map[string][]byte, error) {
 	cpc, ok := conf.CodePrjConfMap[prj]
 	if !ok {
 		return nil, nil, errors.New("prj not exist")
@@ -125,18 +126,6 @@ func (uc *UploadController) parseUploadFile(prj string, context *UploadContext) 
 	}
 	perm := os.FileMode(permInt)
 
-	versionPart, ok := context.multiForm[MultiPartFormNameVersion]
-	if !ok {
-		return nil, nil, errors.New("not have file version")
-	}
-
-	originPartData[MultiPartFormNameVersion] = versionPart.contents
-	versionStr := string(versionPart.contents)
-	versionInt, err := strconv.Atoi(versionStr)
-	if err != nil {
-		return nil, nil, err
-	}
-
 	md5Part, ok := context.multiForm[MultiPartFormNameMd5]
 	if !ok {
 		return nil, nil, errors.New("not have file md5")
@@ -155,14 +144,13 @@ func (uc *UploadController) parseUploadFile(prj string, context *UploadContext) 
 
 	msg := "rpath:" + contentsPart.fileName + "|"
 	msg += "perm:" + perm.String() + "|"
-	msg += "version:" + versionStr
 	context.InfoLog([]byte("parseUploadFile"), []byte(msg))
 
-	return &uploadSvc.UploadFile{
+	return &syncSvc.SyncFile{
+		Op:       syncSvc.OpUpload,
 		Cpc:      cpc,
 		Rpath:    contentsPart.fileName,
 		Contents: contentsPart.contents,
 		Perm:     perm,
-		Version:  versionInt,
 	}, originPartData, nil
 }

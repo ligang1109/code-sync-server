@@ -15,7 +15,7 @@ var BaseConf struct {
 	TmpRoot    string
 	ApiPidFile string
 
-	UploadRoutineCnt int
+	SyncRoutineCnt int
 }
 
 func initBaseConf() {
@@ -29,5 +29,5 @@ func initBaseConf() {
 	BaseConf.TmpRoot = PrjHome + "/tmp"
 	BaseConf.ApiPidFile = BaseConf.TmpRoot + "/api.pid"
 
-	BaseConf.UploadRoutineCnt = scJson.UploadRoutineCnt
+	BaseConf.SyncRoutineCnt = scJson.SyncRoutineCnt
 }

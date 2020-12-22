@@ -2,10 +2,10 @@ package main
 
 import (
 	"code-sync-server/conf"
-	"code-sync-server/controller/api/upload"
+	"code-sync-server/controller/api/file"
 	"code-sync-server/errno"
 	"code-sync-server/resource"
-	uploadSvc "code-sync-server/svc/upload"
+	syncSvc "code-sync-server/svc/sync"
 
 	"github.com/goinbox/gohttp/gracehttp"
 	"github.com/goinbox/gohttp/router"
@@ -48,9 +48,9 @@ func main() {
 		resource.FreeLog()
 	}()
 
-	uploadSvc.StartUploadRoutine()
+	syncSvc.StartSyncRoutine()
 	defer func() {
-		uploadSvc.StopUploadRoutine()
+		syncSvc.StopSyncRoutine()
 	}()
 
 	pf, err := pidfile.CreatePidFile(conf.BaseConf.ApiPidFile)
@@ -61,7 +61,7 @@ func main() {
 
 	r := router.NewSimpleRouter()
 	r.MapRouteItems(
-		new(upload.UploadController),
+		new(file.FileController),
 	)
 
 	sys := system.NewSystem(r)
