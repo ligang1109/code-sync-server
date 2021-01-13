@@ -26,6 +26,7 @@ func TestStructSimpleFieldAssign(t *testing.T) {
 	t.Log(a, b)
 }
 
+//go test -v -test.run=TestGenPrjToken -args "xxxxxx"
 func TestGenPrjToken(t *testing.T) {
 	flag.Parse()
 

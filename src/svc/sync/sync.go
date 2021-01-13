@@ -129,7 +129,7 @@ func (ss *SyncSvc) saveFile(sf *SyncFile) {
 func (ss *SyncSvc) deleteFile(sf *SyncFile) {
 	path := sf.Cpc.PrjHome + "/" + sf.Rpath
 	ss.InfoLog([]byte("deleteFile"), []byte(path))
-	
+
 	err := os.RemoveAll(path)
 	if err != nil {
 		ss.ErrorLog([]byte("deleteFile"), []byte(err.Error()))

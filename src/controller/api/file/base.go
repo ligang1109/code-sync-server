@@ -25,7 +25,6 @@ const (
 )
 
 type multiPart struct {
-
 	fileName string
 	contents []byte
 }
